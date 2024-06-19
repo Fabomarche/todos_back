@@ -1,4 +1,4 @@
-import express, { json } from "express"
+import express from "express"
 import mongoose from "mongoose"
 import bcrypt from "bcryptjs"
 import cors from 'cors'
