@@ -1,11 +1,12 @@
 import express, { json } from "express"
 import mongoose from "mongoose"
+import bcrypt from "bcryptjs"
 import cors from 'cors'
 import config from "./app/config/config.js"
 
 
 
-mongoose.connect(config.mongo.url)
+mongoose.connect(config.mongo.url, {useNewUrlParser: true, useUnifiedTopology: true})
     .then(()=> console.log("Connected to DB"))
     .catch(()=> console.log("DB connection Error"))
 
@@ -33,6 +34,28 @@ const TodoSchema = new mongoose.Schema({
   });
 
 const Todo = mongoose.model("Todo", TodoSchema);
+
+const UserSchema = new mongoose.Schema({
+  username: {
+      type: String,
+      required: true,
+      unique: true
+  },
+  password: {
+      type: String,
+      required: true
+  }
+});
+
+UserSchema.pre('save', async function(next) {
+  const user = this;
+  if (user.isModified('password')) {
+      user.password = await bcrypt.hash(user.password, 8);
+  }
+  next();
+});
+
+const User = mongoose.model("User", UserSchema);
 
 
 app.get("/", (req, res) => {
@@ -62,6 +85,33 @@ app.get("/", (req, res) => {
     const todo = await Todo.findByIdAndDelete(req.params.id);
     res.json(todo);
   });
+
+  app.post("/users", async (req, res) => {
+    try {
+        const user = new User(req.body);
+        await user.save();
+        res.status(201).send(user);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+});
+
+app.post("/users/login", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.body.username });
+        if (!user) {
+            throw new Error('Unable to login');
+        }
+        const isMatch = await bcrypt.compare(req.body.password, user.password);
+        if (!isMatch) {
+            throw new Error('Unable to login');
+        }
+        res.send(user);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+});
+
 
   function connectDB(url) {
     return mongoose.connect(url);
