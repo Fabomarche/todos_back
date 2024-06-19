@@ -30,6 +30,11 @@ const TodoSchema = new mongoose.Schema({
     createdAt: {
       type: Date,
       default: Date.now
+    },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Medium'
     }
   });
 
@@ -88,6 +93,11 @@ app.get("/", (req, res) => {
 
   app.post("/users", async (req, res) => {
     try {
+        const existingUser = await User.findOne({ username: req.body.username });
+        if (existingUser) {
+            return res.status(400).send({ error: 'Username already exists' });
+        }
+
         const user = new User(req.body);
         await user.save();
         res.status(201).send(user);
@@ -96,21 +106,23 @@ app.get("/", (req, res) => {
     }
 });
 
+
 app.post("/users/login", async (req, res) => {
-    try {
-        const user = await User.findOne({ username: req.body.username });
-        if (!user) {
-            throw new Error('Unable to login');
-        }
-        const isMatch = await bcrypt.compare(req.body.password, user.password);
-        if (!isMatch) {
-            throw new Error('Unable to login');
-        }
-        res.send(user);
-    } catch (error) {
-        res.status(400).send(error);
-    }
+  try {
+      const user = await User.findOne({ username: req.body.username });
+      if (!user) {
+          return res.status(400).send({ error: 'User not found' });
+      }
+      const isMatch = await bcrypt.compare(req.body.password, user.password);
+      if (!isMatch) {
+          return res.status(400).send({ error: 'Invalid password' });
+      }
+      res.send(user);
+  } catch (error) {
+      res.status(500).send({ error: 'Server error' });
+  }
 });
+
 
 
   function connectDB(url) {
