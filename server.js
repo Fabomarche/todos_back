@@ -5,7 +5,7 @@ import config from "./app/config/config.js";
 import todoRoutes from "./app/routes/todosRoutes.js";
 import usersRoutes from "./app/routes/usersRoutes.js";
 
-mongoose.connect(config.mongo.url, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(config.mongo.url)
     .then(()=> console.log("Connected to DB"))
     .catch(()=> console.log("DB connection Error"));
 

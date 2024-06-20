@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 export const createUser = async (req, res) => {
     try {
         if (!req.body.username || !req.body.password) {
-            console.log(req.body)
             return res.status(400).send({ error: 'Username and password are required' });
         }
 
