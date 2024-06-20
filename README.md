@@ -62,4 +62,4 @@ Bonus tasks implementation (if any).
 
 Overall creativity and problem-solving approach.
 
-### make it in less than 24hs
+### maked it in less than 24hs
